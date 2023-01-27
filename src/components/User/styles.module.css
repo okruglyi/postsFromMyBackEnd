@@ -1,0 +1,17 @@
+.inHeader {
+    display: flex;
+    flex-direction: column;
+    align-self: end;
+}
+
+.inHeader img {
+    max-width: 50px;
+    margin: 5px 0;
+}
+
+.inHeader span {
+    margin: 2px 0;
+}
+
+
+

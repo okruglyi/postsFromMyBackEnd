@@ -1,0 +1,17 @@
+.inHeader {
+    display: flex;
+    flex-direction: column;
+}
+
+.inHeader img {
+    max-width: 80px;
+}
+
+.inFooter {
+    display: flex;
+    flex-direction: column;
+}
+
+.inFooter img {
+    max-width: 80px;
+}
