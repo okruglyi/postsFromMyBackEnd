@@ -17,7 +17,8 @@ import {Profile} from "./components/Profile/Profile";
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import {purple} from "@mui/material/modern/colors";
 import {PostCreatePage} from "./pages/PostCreatePage/PostCreatePage";
-
+import LogoutIcon from '@mui/icons-material/Logout';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 export const App = () => {
     const sortDefault = 'newerDate';
@@ -72,7 +73,6 @@ export const App = () => {
             handleSearchRequest();
         }
     }, [delayedSearchQuery])
-
 
     function handleSearchRequest() {
         setIsLoading(true)
@@ -133,18 +133,21 @@ export const App = () => {
             }}>
             <ThemeProvider theme={theme}>
                 <Header>
+                    <FavoriteIcon/>
+                    <LogoutIcon/>
                     <Logo nameClass={'inHeader'}/>
                     {location.pathname === '/' &&
                     <Search searchQuery={searchQuery} handleSearchInput={handleSearchInput}/>}
-
                     {
                         userAuth
-                            ? (<Link
-                                style={{textDecoration: 'none'}}
-                                to={'/profile'}
-                                state={{backgroundLocation: location}}>
-                                <User {...userInfo} size={'70px'} nameClass='inHeader' clickable={true}/>
-                            </Link>)
+                            ? (<>
+                                <Link
+                                    style={{textDecoration: 'none'}}
+                                    to={'/profile'}
+                                    state={{backgroundLocation: location}}>
+                                    <User {...userInfo} size={'70px'} nameClass='inHeader' clickable={true}/>
+                                </Link>
+                            </>)
                             : (<Link
                                 to={'/login'}
                                 state={{backgroundLocation: location}}>

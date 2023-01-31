@@ -70,6 +70,8 @@ export const DetailedPost = ({post, comments, handleComment, handleDeleteComment
         navigate(`/posts/edit/${_id}`)
     }
 
+    console.log('ntcn')
+
     return (
         <Card sx={{
             width: '100%',

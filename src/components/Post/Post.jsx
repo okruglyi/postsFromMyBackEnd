@@ -42,7 +42,6 @@ export const Post = ({
     }
 
 
-
     return (
         <Card sx={{height: 'auto'}}>
             <Link to={`/posts/${_id}`} style={{textDecoration: 'none'}}>
@@ -107,11 +106,11 @@ export const Post = ({
                 <IconButton disabled={authorId !== userInfo?.['_id']} onClick={handleEditPost}>
                     <EditIcon/>
                 </IconButton>
-                <IconButton disabled={authorId !== userInfo?.['_id']} onClick={()=> handleOpenDeleteDialog(_id)}>
+                <IconButton disabled={authorId !== userInfo?.['_id']} onClick={() => handleOpenDeleteDialog(_id)}>
                     <DeleteIcon/>
                 </IconButton>
             </CardActions>
-{/*            <Divider/>
+            {/*            <Divider/>
             <Box
                 sx={{
                     display: 'flex',
@@ -128,7 +127,8 @@ export const Post = ({
                 component="ul"
             >
                 {tags?.map((tag) => <Tag tag={tag} key={tag + '_' + _id}/>)}
-            </Box>*/}
+            </Box>*/
+            }
         </Card>
     )
 }
