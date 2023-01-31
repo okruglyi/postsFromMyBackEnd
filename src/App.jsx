@@ -48,6 +48,7 @@ export const App = () => {
             },
         },
     });
+    console.log('ntcn')
 
     useEffect(() => {
         setIsLoading(true)
