@@ -22,7 +22,7 @@ export const User = ({anyUser, size = '50px', clickable = false}) => {
                         srcSet={user?.avatar}
                     />
                 }
-                title={user?.name}
+                // title={user?.name}
                 titleTypographyProps={{noWrap: false, fontWeight: 400, color: 'secondary'}}
                 sx={{clickable: clickable}}
             />

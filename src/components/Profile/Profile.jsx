@@ -19,6 +19,7 @@ export const Profile = ({open, setOpen}) => {
     const style = {
         position: 'absolute',
         display: 'flex',
+        alignItems: 'center',
         flexDirection: 'column',
         top: '50%',
         left: '50%',
@@ -50,9 +51,16 @@ export const Profile = ({open, setOpen}) => {
                 <Typography id="modal-modal-title" variant="h6" sx={{alignSelf: 'center', mb: 3}}>
                     Профиль
                 </Typography>
-                <User size={'150px'}/>
+                <div style={{marginLeft: '16px'}}>
+                    <User size={'150px'}/>
+                </div>
                 <form onSubmit={handleSubmit(onFormSubmit)}
-                      style={{display: 'flex', flexDirection: 'column', marginTop: '12px'}}>
+                      style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          marginTop: '12px',
+                          width: '-webkit-fill-available'
+                      }}>
                     <TextField
                         {...register('name')}
                         fullWidth

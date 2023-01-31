@@ -16,8 +16,6 @@ export const PostPage = () => {
     const {postId} = useParams()
     const navigate = useNavigate();
 
-    console.log('ререндинг')
-
     useEffect(() => {
         setIsLoading(true)
         Promise.all([api.getPost(postId), api.getPostComments(postId)])

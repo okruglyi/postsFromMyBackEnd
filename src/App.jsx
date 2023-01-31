@@ -9,7 +9,7 @@ import {NotFoundPage} from "./pages/NotFoundPage/NotFoundPage";
 import {User} from "./components/User/User";
 import {api} from "./utils/Api";
 import {AppContext} from "./context/appContext";
-import {Box, Container} from "@mui/material";
+import {Box, Container, IconButton} from "@mui/material";
 import {Search} from "./components/Search/Search";
 import {useDebounce} from "./hooks/useDebounce";
 import utils from './utils/Utils';
@@ -48,7 +48,6 @@ export const App = () => {
             },
         },
     });
-    console.log('ntcn')
 
     useEffect(() => {
         setIsLoading(true)
@@ -100,8 +99,7 @@ export const App = () => {
         setPosts(utils.doSort(posts, id))
     }
 
-    function handleLike(postId, isMeLiked, setIsMeLiked, setLikes = () => {
-    }) {
+    function handleLike(postId, isMeLiked, setIsMeLiked, setLikes = () => {}) {
         isMeLiked
             ? api.deleteLike(postId)
                 .then((newPost) => {
@@ -134,21 +132,23 @@ export const App = () => {
             }}>
             <ThemeProvider theme={theme}>
                 <Header>
-                    <FavoriteIcon/>
-                    <LogoutIcon/>
                     <Logo nameClass={'inHeader'}/>
                     {location.pathname === '/' &&
                     <Search searchQuery={searchQuery} handleSearchInput={handleSearchInput}/>}
                     {
                         userAuth
-                            ? (<>
+                            ? (<div style={{"display": "flex"}}>
                                 <Link
                                     style={{textDecoration: 'none'}}
                                     to={'/profile'}
                                     state={{backgroundLocation: location}}>
                                     <User {...userInfo} size={'70px'} nameClass='inHeader' clickable={true}/>
                                 </Link>
-                            </>)
+                                <IconButton style={{height: 'fit-content', alignSelf: 'center'}}
+                                            onClick={(() => console.log('action'))}>
+                                    <LogoutIcon/>
+                                </IconButton>
+                            </div>)
                             : (<Link
                                 to={'/login'}
                                 state={{backgroundLocation: location}}>

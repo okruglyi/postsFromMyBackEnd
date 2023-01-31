@@ -6,7 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, "dist"), //путь куда будет собираться наш проект
     filename: "main.js", // имя нашего бандла
-    publicPath:"./"
+    publicPath:"/"
   },
   mode: "development", // по умолчанию webpack миницифирует скрипты, чтобы это избежать меням режим
   devServer: {
