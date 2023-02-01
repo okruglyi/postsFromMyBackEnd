@@ -178,6 +178,7 @@ export const DetailedPost = ({post, comments, handleComment, handleDeleteComment
                                 type={'submit'}
                                 sx={{width: 'initial', alignSelf: 'flex-end', mt: 1}}>Прокомментировать</Button>
                     </form>
+                    <Divider sx={{mt: 2, mb: 0, width: '15%'}}/>
                     <Typography variant={'overline'} color="text.secondary">
                         {(() => {
                             switch (comments?.length) {

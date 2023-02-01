@@ -16,7 +16,7 @@
     flex-direction: column;
     min-height: 100%;
     /*height: 100vh;*/
-    /*justify-content: space-between;*/
+    justify-content: space-between;
     /*gap: 100px;*/
     /*color: #4bb98a*/
 }

@@ -9,7 +9,7 @@ import {NotFoundPage} from "./pages/NotFoundPage/NotFoundPage";
 import {User} from "./components/User/User";
 import {api} from "./utils/Api";
 import {AppContext} from "./context/appContext";
-import {Box, Container, IconButton} from "@mui/material";
+import {Typography} from "@mui/material";
 import {Search} from "./components/Search/Search";
 import {useDebounce} from "./hooks/useDebounce";
 import utils from './utils/Utils';
@@ -17,8 +17,8 @@ import {Profile} from "./components/Profile/Profile";
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import {purple} from "@mui/material/modern/colors";
 import {PostCreatePage} from "./pages/PostCreatePage/PostCreatePage";
-import LogoutIcon from '@mui/icons-material/Logout';
-import FavoriteIcon from '@mui/icons-material/Favorite';
+import {FormAuth} from "./components/FormAuth/FormAuth";
+import {AuthUIControl} from "./components/AuthUIControl/AuthUIControl";
 
 export const App = () => {
     const sortDefault = 'newerDate';
@@ -32,10 +32,12 @@ export const App = () => {
     const firstRender = useRef(true)
     const [sortOrder, setSortOrder] = useState(sortDefault)
     const [open, setOpen] = useState(false)
-    const [userAuth, setUserAuth] = useState(true)
+    const [userAuth, setUserAuth] = useState(false)
     const navigate = useNavigate()
     const location = useLocation()
     const state = location.state
+    const token = localStorage.getItem('jwt')
+    const path = location.pathname
     const theme = createTheme({
         palette: {
             primary: {
@@ -74,6 +76,11 @@ export const App = () => {
         }
     }, [delayedSearchQuery])
 
+    useEffect(() => {
+        console.log(path)
+        if (path !== '/login' && path !== '/registration') handleAuthValidation()
+    }, [location.pathname])
+
     function handleSearchRequest() {
         setIsLoading(true)
         api
@@ -99,7 +106,8 @@ export const App = () => {
         setPosts(utils.doSort(posts, id))
     }
 
-    function handleLike(postId, isMeLiked, setIsMeLiked, setLikes = () => {}) {
+    function handleLike(postId, isMeLiked, setIsMeLiked, setLikes = () => {
+    }) {
         isMeLiked
             ? api.deleteLike(postId)
                 .then((newPost) => {
@@ -119,13 +127,25 @@ export const App = () => {
                 })
     }
 
+    function handleAuthValidation() {
+        if (!token) {
+            setUserAuth(false)
+            navigate('/')
+        }
+    }
+
+    function handleLogout() {
+        if (userAuth) localStorage.removeItem('jwt');
+        setUserAuth(false)
+    }
+
     return (
         <AppContext.Provider
             value={{
                 postsOnPage: postsOnPage,
                 loadingState: {isLoading, setIsLoading},
                 handleLike: handleLike,
-                userAuth: userAuth,
+                userAuthContext: {userAuth: userAuth, setUserAuth: setUserAuth},
                 postsObj: {posts: posts, setPosts: setPosts},
                 user: {userInfo: userInfo, setUserInfo: setUserInfo},
                 page: {page: page, setPage: setPage},
@@ -133,63 +153,59 @@ export const App = () => {
             <ThemeProvider theme={theme}>
                 <Header>
                     <Logo nameClass={'inHeader'}/>
-                    {location.pathname === '/' &&
-                    <Search searchQuery={searchQuery} handleSearchInput={handleSearchInput}/>}
-                    {
-                        userAuth
-                            ? (<div style={{"display": "flex"}}>
-                                <Link
-                                    style={{textDecoration: 'none'}}
-                                    to={'/profile'}
-                                    state={{backgroundLocation: location}}>
-                                    <User {...userInfo} size={'70px'} nameClass='inHeader' clickable={true}/>
-                                </Link>
-                                <IconButton style={{height: 'fit-content', alignSelf: 'center'}}
-                                            onClick={(() => console.log('action'))}>
-                                    <LogoutIcon/>
-                                </IconButton>
-                            </div>)
-                            : (<Link
-                                to={'/login'}
-                                state={{backgroundLocation: location}}>
-                                Логин
-                            </Link>)
-                    }
+                    {userAuth && <Search searchQuery={searchQuery} handleSearchInput={handleSearchInput}/>}
+                    <AuthUIControl handleLogout={handleLogout}/>
                 </Header>
                 <main className='content container'>
-                    <Routes location={state?.backgroundLocation || location}>
-                        <Route
-                            path="/"
-                            element={
-                                <AllPostsPage posts={posts} handleSort={handleSort} sortOrder={sortOrder}/>
-                            }
-                        />
-                        <Route
-                            path='/posts/:postId'
-                            element={<PostPage/>}
-                        />
-                        <Route
-                            path='/posts'
-                            element={<PostCreatePage/>}
-                        />
-                        <Route
-                            path='/posts/edit/:postId'
-                            element={<PostCreatePage edit/>}
-                        />
-                        <Route
-                            path="*"
-                            element={<NotFoundPage/>}
-                        />
-                    </Routes>
+                    {userAuth &&
+                    <>
+                        <Routes location={state?.backgroundLocation || location}>
+                            <Route
+                                path="/"
+                                element={
+                                    <AllPostsPage posts={posts} handleSort={handleSort} sortOrder={sortOrder}/>
+                                }
+                            />
+                            <Route
+                                path='/posts/:postId'
+                                element={<PostPage/>}
+                            />
+                            <Route
+                                path='/posts'
+                                element={<PostCreatePage/>}
+                            />
+                            <Route
+                                path='/posts/edit/:postId'
+                                element={<PostCreatePage edit/>}
+                            />
+                            <Route
+                                path="*"
+                                element={<NotFoundPage/>}
+                            />
+                        </Routes>
+                        {state?.backgroundLocation && (
+                            <Routes>
+                                <Route
+                                    path={'/profile'}
+                                    element={<Profile open={true} setOpen={() => navigate(-1)}/>}
+                                />
+                            </Routes>)}
+                    </>}
                     {state?.backgroundLocation && (
                         <Routes>
                             <Route
-                                path={'/profile'}
-                                element={<Profile open={true} setOpen={() => navigate(-1)} {...posts}/>}
+                                path={'/login'}
+                                element={<FormAuth open={true} setOpen={() => navigate(-1)}/>}
+                            />
+                            <Route
+                                path={'/registration'}
+                                element={<FormAuth open={true} setOpen={() => navigate(-1)}/>}
                             />
                         </Routes>)}
                 </main>
-                <Footer/>
+                <Footer>
+                    <Typography>Здесь будет общая информация</Typography>
+                </Footer>
             </ThemeProvider>
         </AppContext.Provider>
     )

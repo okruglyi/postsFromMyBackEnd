@@ -1,18 +1,17 @@
-import React, {useContext, useEffect, useState} from "react";
-import {Box, Grid, Modal, Paper, Typography, TextField, FormControl, Button} from "@mui/material";
+import React, {useContext, useState} from "react";
+import {Box, Modal, Typography, TextField, Button, IconButton} from "@mui/material";
 import {User} from "../User/User";
 import {AppContext} from "../../context/appContext";
 import {useForm} from "react-hook-form";
 import {api} from "../../utils/Api";
+import CloseIcon from '@mui/icons-material/Close';
 
 export const Profile = ({open, setOpen}) => {
-
     const handleClose = () => setOpen(false)
     const {user: {userInfo, setUserInfo}} = useContext(AppContext) //author: {name, avatar, about, email}
     const [_name, _setName] = useState(userInfo?.name)
     const [_about, _setAbout] = useState(userInfo?.about)
     const [_avatar, _setAvatar] = useState(userInfo?.avatar)
-
     const {register, handleSubmit, reset, formState: {errors}} = useForm({
         mode: "onBlur",
     })
@@ -48,6 +47,9 @@ export const Profile = ({open, setOpen}) => {
             <Box
                 sx={style}
             >
+                <IconButton onClick={handleClose} sx={{position: 'absolute', top: '14px', right: '14px'}}>
+                    <CloseIcon color='secondary'/>
+                </IconButton>
                 <Typography id="modal-modal-title" variant="h6" sx={{alignSelf: 'center', mb: 3}}>
                     Профиль
                 </Typography>
@@ -102,24 +104,9 @@ export const Profile = ({open, setOpen}) => {
                             _setAvatar(e.target.value)
                         }}
                     />
-                    {/*<button>Изменить данные</button>*/}
                     <Button type={'submit'} sx={{color: '#000', mt: '20px'}}>Изменить данные</Button>
                 </form>
             </Box>
-            {/*            <Box
-                component={'form'}
-                sx={style}
-                noValidate
-            >
-                <Typography id="modal-modal-title" variant="h6" sx={{alignSelf: 'center', mb: 3}}>
-                    Профиль
-                </Typography>
-                <User style={{justifySelf: 'start'}}/>
-                <Typography id="modal-modal-description" sx={{mt: 2}}>
-                    {user?.userInfo?.about}
-                </Typography>
-
-            </Box>*/}
         </Modal>
     )
 }
