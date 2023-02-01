@@ -16,6 +16,7 @@ export const FormAuth = ({open, setOpen}) => {
     const handleClose = () => setOpen(false)
     const {user: {userInfo, setUserInfo}, userAuthContext: {userAuth, setUserAuth}} = useContext(AppContext) //author: {name, avatar, about, email}
     const location = useLocation()
+    const state = location.state
     const navigate = useNavigate()
     const {register, handleSubmit, reset, formState: {errors}} = useForm({
         mode: "onBlur",
@@ -35,8 +36,10 @@ export const FormAuth = ({open, setOpen}) => {
         boxShadow: 24,
         p: 4,
     };
-    const windowContent = {
+    const formDataStructure = {
         title: loginPathTrue && 'Авторизация' || registrationPathTrue && 'Регистрация',
+        loginForm: loginPathTrue,
+        registrationForm: registrationPathTrue,
         link: loginPathTrue && true || registrationPathTrue && false,
         button: loginPathTrue && 'Вход' || registrationPathTrue && 'Зарегистрироваться',
         request: (response) => {
@@ -45,6 +48,7 @@ export const FormAuth = ({open, setOpen}) => {
                     successAuth(userInfo)
                 })
                 .catch((response) => {
+                    console.log(response)
                     rejectAuth(response)
                 })
             registrationPathTrue && auth.requestRegistration(response)
@@ -52,6 +56,7 @@ export const FormAuth = ({open, setOpen}) => {
                     successAuth(userInfo)
                 })
                 .catch((response) => {
+                    console.log(response)
                     rejectAuth(response)
                 })
         }
@@ -62,13 +67,13 @@ export const FormAuth = ({open, setOpen}) => {
 
     function onFormSubmit(formData) {
         console.log(formData)
-        windowContent.request(formData)
+        formDataStructure.request(formData)
     }
 
     function successAuth(userData) {
-        localStorage.setItem('jwt', userData['token'])
-        setUserInfo(userData)
-        setUserAuth(true)
+        localStorage.setItem('jwt', userData['token']?.toString())
+        setUserInfo(formDataStructure.loginForm && userData)
+        setUserAuth(formDataStructure.loginForm)
         setError(false)
         navigate(state.backgroundLocation.pathname)
     }
@@ -95,7 +100,7 @@ export const FormAuth = ({open, setOpen}) => {
                     <CloseIcon color='secondary'/>
                 </IconButton>
                 <Typography variant="h6" sx={{alignSelf: 'center', mb: 3, mt: 4}}>
-                    {windowContent.title}
+                    {formDataStructure.title}
                 </Typography>
                 <form onSubmit={handleSubmit(onFormSubmit)}
                       style={{display: 'flex', alignItems: 'center', flexDirection: 'column', marginTop: '12px'}}>
@@ -107,6 +112,15 @@ export const FormAuth = ({open, setOpen}) => {
                         margin='normal'
                         size='small'
                     />
+                    {!formDataStructure.link &&
+                    <TextField
+                        {...register('group')}
+                        required
+                        fullWidth
+                        label='Группа'
+                        margin='normal'
+                        size='small'
+                    />}
                     <TextField
                         {...register('password')}
                         required
@@ -117,7 +131,7 @@ export const FormAuth = ({open, setOpen}) => {
                         autoComplete='current-password'
                         size='small'
                     />
-                    {windowContent.link &&
+                    {formDataStructure.link &&
                     <Link to='/registration'
                           state={{backgroundLocation: location.state.backgroundLocation}}
                           replace
@@ -135,7 +149,7 @@ export const FormAuth = ({open, setOpen}) => {
                         {error && textErr}
                     </Typography>
                     <Button type={'submit'} sx={{mt: '10px', width: 'fit-content'}}
-                            variant="outlined" color={'secondary'}>{windowContent.button}</Button>
+                            variant="outlined" color={'secondary'}>{formDataStructure.button}</Button>
                 </form>
             </Box>
         </Modal>

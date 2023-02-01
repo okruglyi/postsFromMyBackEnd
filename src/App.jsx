@@ -19,6 +19,7 @@ import {purple} from "@mui/material/modern/colors";
 import {PostCreatePage} from "./pages/PostCreatePage/PostCreatePage";
 import {FormAuth} from "./components/FormAuth/FormAuth";
 import {AuthUIControl} from "./components/AuthUIControl/AuthUIControl";
+import {auth} from "./utils/Auth";
 
 export const App = () => {
     const sortDefault = 'newerDate';
@@ -53,12 +54,10 @@ export const App = () => {
 
     useEffect(() => {
         setIsLoading(true)
-
-        Promise.all([api.getUserInfo(), api.getAllPosts()])
+        Promise.all([api.getUserInfo(token), api.getAllPosts(token)])
             .then(([resUserInfo, resPosts]) => {
                 setUserInfo(resUserInfo)
                 setPosts(utils.doSort(resPosts, sortOrder))
-
             })
             .catch((error) => {
                 console.log(`Error: ${error}`)
@@ -66,25 +65,25 @@ export const App = () => {
             .finally(() => {
                 setIsLoading(false)
             })
-    }, [])
+    }, [userAuth])
 
     useEffect(() => {
         if (firstRender.current) {
             firstRender.current = false
         } else {
+            navigate('/')
             handleSearchRequest();
         }
     }, [delayedSearchQuery])
 
     useEffect(() => {
-        console.log(path)
         if (path !== '/login' && path !== '/registration') handleAuthValidation()
     }, [location.pathname])
 
     function handleSearchRequest() {
         setIsLoading(true)
         api
-            .searchPosts(delayedSearchQuery)
+            .searchPosts(delayedSearchQuery, token)
             .then((resPosts) => {
                 setPosts(utils.doSort(resPosts, sortOrder))
                 setPage(1)
@@ -109,7 +108,7 @@ export const App = () => {
     function handleLike(postId, isMeLiked, setIsMeLiked, setLikes = () => {
     }) {
         isMeLiked
-            ? api.deleteLike(postId)
+            ? api.deleteLike(postId, token)
                 .then((newPost) => {
                     setLikes(newPost['likes'])
                     setPosts(posts?.map((post) => {
@@ -117,7 +116,7 @@ export const App = () => {
                     }))
                     setIsMeLiked(!isMeLiked)
                 })
-            : api.setLike(postId)
+            : api.setLike(postId, token)
                 .then((newPost) => {
                     setLikes(newPost['likes'])
                     setPosts(posts?.map((post) => {
@@ -128,15 +127,23 @@ export const App = () => {
     }
 
     function handleAuthValidation() {
-        if (!token) {
-            setUserAuth(false)
-            navigate('/')
-        }
+        if (token) {
+            auth.requestValidationUser(token)
+                .then((userInfo) => {
+                    setUserInfo(userInfo)
+                    setUserAuth(true)
+                })
+                .catch((response) => {
+                    console.log(response?.status)
+                    if (response?.status === 401) handleLogout()
+                })
+        } else handleLogout()
     }
 
     function handleLogout() {
-        if (userAuth) localStorage.removeItem('jwt');
+        if (token) localStorage.removeItem('jwt');
         setUserAuth(false)
+        navigate('/login', {state: {backgroundLocation: location}})
     }
 
     return (
@@ -163,20 +170,21 @@ export const App = () => {
                             <Route
                                 path="/"
                                 element={
-                                    <AllPostsPage posts={posts} handleSort={handleSort} sortOrder={sortOrder}/>
+                                    <AllPostsPage posts={posts} handleSort={handleSort} sortOrder={sortOrder}
+                                                  token={token}/>
                                 }
                             />
                             <Route
                                 path='/posts/:postId'
-                                element={<PostPage/>}
+                                element={<PostPage token={token}/>}
                             />
                             <Route
                                 path='/posts'
-                                element={<PostCreatePage/>}
+                                element={<PostCreatePage edit={false} token={token}/>}
                             />
                             <Route
                                 path='/posts/edit/:postId'
-                                element={<PostCreatePage edit/>}
+                                element={<PostCreatePage edit={true} token={token}/>}
                             />
                             <Route
                                 path="*"
@@ -187,7 +195,7 @@ export const App = () => {
                             <Routes>
                                 <Route
                                     path={'/profile'}
-                                    element={<Profile open={true} setOpen={() => navigate(-1)}/>}
+                                    element={<Profile open={true} token={token} setOpen={() => navigate(-1)}/>}
                                 />
                             </Routes>)}
                     </>}

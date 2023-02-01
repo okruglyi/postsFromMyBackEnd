@@ -8,7 +8,7 @@ import {DetailedPost} from "../../components/DetailedPost/DetailedPost";
 import {Spinner} from "../../components/Spinner/Spinner";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-export const PostPage = () => {
+export const PostPage = ({token}) => {
     const [post, setPost] = useState({})
     const [comments, setComments] = useState({})
     const [isError, serIsError] = useState(false)
@@ -18,7 +18,7 @@ export const PostPage = () => {
 
     useEffect(() => {
         setIsLoading(true)
-        Promise.all([api.getPost(postId), api.getPostComments(postId)])
+        Promise.all([api.getPost(postId, token), api.getPostComments(postId, token)])
             .then(([respPost, respComments]) => {
                 setPost(respPost)
                 setComments(respComments)
@@ -27,26 +27,23 @@ export const PostPage = () => {
             .finally(() => setIsLoading(false))
     }, [postId])
 
+    function handlePost(respPost, postId) {
+        setPost(respPost)
+        api.getPostComments(postId, token)
+            .then((respComment) => {
+                setComments(respComment)
+            })
+    }
+
     function handleComment(postId, commentText, commentId) {
-
         commentId
-            ? api.deletePostComment(postId, commentId)
+            ? api.deletePostComment(postId, commentId, token)
                 .then((respPost) => {
-                    setPost(respPost)
-
-                    api.getPostComments(postId)
-                        .then((respComment) => {
-                            setComments(respComment)
-                        })
+                    handlePost(respPost, postId)
                 })
-            : api.setPostComment(postId, commentText)
+            : api.setPostComment(postId, commentText, token)
                 .then((respPost) => {
-                    setPost(respPost)
-
-                    api.getPostComments(postId)
-                        .then((respComment) => {
-                            setComments(respComment)
-                        })
+                    handlePost(respPost, postId)
                 })
 
         /*            ? api.deletePostComment(postId, commentId)

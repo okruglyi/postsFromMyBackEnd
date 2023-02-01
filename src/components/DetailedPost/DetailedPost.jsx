@@ -1,21 +1,10 @@
-import React, {useContext, useEffect, useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import React, {useContext, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
-import {
-    Avatar,
-    Box, breadcrumbsClasses,
-    Button,
-    CardActionArea,
-    CardActions,
-    CardHeader,
-    Divider,
-    IconButton,
-    TextareaAutosize,
-    TextField
-} from '@mui/material';
+import {Box, Button, CardActions, CardHeader, Divider, IconButton, TextField} from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import {red} from '@mui/material/colors';

@@ -6,7 +6,7 @@ import {useForm} from "react-hook-form";
 import {api} from "../../utils/Api";
 import CloseIcon from '@mui/icons-material/Close';
 
-export const Profile = ({open, setOpen}) => {
+export const Profile = ({open, setOpen, token}) => {
     const handleClose = () => setOpen(false)
     const {user: {userInfo, setUserInfo}} = useContext(AppContext) //author: {name, avatar, about, email}
     const [_name, _setName] = useState(userInfo?.name)
@@ -31,7 +31,7 @@ export const Profile = ({open, setOpen}) => {
     };
 
     function onFormSubmit({avatar, ...data}) {
-        Promise.all([api.editUserInfo(data), api.editAvatar({avatar: avatar})])
+        Promise.all([api.editUserInfo(data, token), api.editAvatar({avatar: avatar}, token)])
             .then(([newUserInfo, newAvatar]) => {
                 setUserInfo({...newUserInfo, newAvatar})
             })
