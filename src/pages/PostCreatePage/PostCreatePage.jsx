@@ -9,7 +9,7 @@ import {Spinner} from "../../components/Spinner/Spinner";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {PostCreate} from "../../components/PostCreate/PostCreate";
 
-export const PostCreatePage = ({edit = false}) => {
+export const PostCreatePage = ({edit = false}, token) => {
     const [post, setPost] = useState({})
     const [comments, setComments] = useState({})
     const [isError, serIsError] = useState(false)
@@ -46,7 +46,7 @@ export const PostCreatePage = ({edit = false}) => {
                     <ArrowBackIcon sx={{m: '3px 6px 3px 2px'}}/>
                     Назад
                 </Button>
-                <PostCreate edit={edit}/>
+                <PostCreate edit={edit} token={token}/>
             </Grid2>
         </Container>
     )

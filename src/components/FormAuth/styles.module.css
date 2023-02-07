@@ -1,0 +1,25 @@
+.box {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    border-radius: 20px;
+    padding: 30px;
+    background-color: white;
+}
+
+.link {
+    align-self: flex-end;
+    margin-bottom: 4px;
+    color: var(--main-color);
+}
+
+.form {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    margin: 12px 0 5px 0;
+}

@@ -1,5 +1,5 @@
 import React, {useContext} from "react";
-import {Avatar, Box, Button, CardActionArea, CardHeader, Chip, Typography} from "@mui/material";
+import {Avatar, Box, CardHeader} from "@mui/material";
 import {red} from "@mui/material/colors";
 import {AppContext} from "../../context/appContext";
 
