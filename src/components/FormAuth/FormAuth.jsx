@@ -8,72 +8,93 @@ import {api} from "../../utils/Api";
 import CloseIcon from '@mui/icons-material/Close';
 import {auth} from "../../utils/Auth";
 import {useTheme} from '@mui/material/styles';
+import {Notice} from "../Notice/Notice";
+import s from './styles.module.css';
 
-export const FormAuth = ({open, setOpen}) => {
+export const FormAuth = ({title, field, reference, textButton, open, setOpen}) => {
     const [error, setError] = useState(false)
-    const [textErr, setTextErr] = useState('')
+    const [success, setSuccess] = useState(false)
+    const [textError, setTextError] = useState('')
+    const [textSuccess, setTextSuccess] = useState('')
+    const [_email, setEmail] = useState('')
+    const [_password, setPassword] = useState('')
+    const [_group, setGroup] = useState('')
+    const [_token, setToken] = useState('')
     const theme = useTheme()
     const handleClose = () => setOpen(false)
     const {user: {userInfo, setUserInfo}, userAuthContext: {userAuth, setUserAuth}} = useContext(AppContext) //author: {name, avatar, about, email}
     const location = useLocation()
     const state = location.state
     const navigate = useNavigate()
-    const {register, handleSubmit, reset, formState: {errors}} = useForm({
-        mode: "onBlur",
+    const token = localStorage.getItem('jwt')
+    const {register, handleSubmit, reset, formState: {errors, isSubmitSuccessful}} = useForm({
+        mode: "onBlur"
     })
     const loginPathTrue = location.pathname === '/login'
     const registrationPathTrue = location.pathname === '/registration'
-    const style = {
-        position: 'absolute',
-        display: 'flex',
-        flexDirection: 'column',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: 400,
-        bgcolor: 'background.paper',
-        borderRadius: '20px',
-        boxShadow: 24,
-        p: 4,
-    };
-    const formDataStructure = {
-        title: loginPathTrue && 'Авторизация' || registrationPathTrue && 'Регистрация',
-        loginForm: loginPathTrue,
-        registrationForm: registrationPathTrue,
-        link: loginPathTrue && true || registrationPathTrue && false,
-        button: loginPathTrue && 'Вход' || registrationPathTrue && 'Зарегистрироваться',
-        request: (response) => {
-            loginPathTrue && auth.authRequest(response)
-                .then((userInfo) => {
-                    successAuth(userInfo)
-                })
-                .catch((response) => {
-                    console.log(response)
-                    rejectAuth(response)
-                })
-            registrationPathTrue && auth.requestRegistration(response)
-                .then((userInfo) => {
-                    successAuth(userInfo)
-                })
-                .catch((response) => {
-                    console.log(response)
-                    rejectAuth(response)
-                })
-        }
+    const resetPassPathTrue = location.pathname === '/reset_password'
+    const changePassPathTrue = location.pathname === '/change_password'
+
+    const request = (data) => {
+        console.log('data.password', data.password, 'data.token', data.token)
+        loginPathTrue && auth.authRequest(data)
+            .then((userInfo) => {
+                successAuth(userInfo)
+            })
+            .catch((response) => {
+                console.log(response)
+                rejectAuth(response)
+            })
+        registrationPathTrue && auth.requestRegistration(data)
+            .then((userInfo) => {
+                successAuth(userInfo)
+            })
+            .catch((response) => {
+                console.log(response)
+                rejectAuth(response)
+            })
+        resetPassPathTrue && auth.requestPasswordReset(data)
+            .then((response) => {
+                setSuccess(true)
+                setError(false)
+                setTextSuccess(response.message)
+                // navigate(state.backgroundLocation.pathname)
+            })
+            .catch((error) => {
+                rejectAuth(error)
+            })
+        changePassPathTrue && auth.requestPasswordChange(data, userInfo?.['_id'] ?? '622b6ffc09b12f80f4c10baa')
+            .then((response) => {
+                successAuth(response)
+                setTextSuccess("Пароль успешно изменен!")
+            })
+            .catch((error) => {
+                rejectAuth(error)
+            })
     }
+
     useEffect(() => {
         setError(false)
-    }, [location.pathname])
+        reset(() => {
+                setEmail('')
+                setGroup('')
+                setPassword('')
+                setToken('')
+            }
+        )
+    }, [location.pathname, isSubmitSuccessful])
 
     function onFormSubmit(formData) {
         console.log(formData)
-        formDataStructure.request(formData)
+        request(formData)
     }
 
     function successAuth(userData) {
-        localStorage.setItem('jwt', userData['token']?.toString())
-        setUserInfo(formDataStructure.loginForm && userData)
-        setUserAuth(formDataStructure.loginForm)
+        console.log(userData ?? 'Неопределен')
+        localStorage.setItem('jwt', userData?.['token']?.toString())
+        setUserInfo(userData?.['data'])
+        setUserAuth(userData?.['data'] || false)
+        setSuccess(true)
         setError(false)
         navigate(state.backgroundLocation.pathname)
     }
@@ -81,8 +102,9 @@ export const FormAuth = ({open, setOpen}) => {
     function rejectAuth(response) {
         response.json().then((error) => {
             console.log(error)
+            setSuccess(false)
             setError(true)
-            setTextErr(error.message)
+            setTextError(error.message)
         })
     }
 
@@ -93,64 +115,90 @@ export const FormAuth = ({open, setOpen}) => {
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description"
         >
-            <Box
-                sx={style}
+            <Box className={s.box}
+                 sx={{boxShadow: 24}}
             >
-                <IconButton onClick={handleClose} sx={{position: 'absolute', top: '4px', right: '14px'}}>
+                <IconButton onClick={handleClose}
+                            sx={{position: 'absolute', top: '12px', right: '12px'}}>
                     <CloseIcon color='secondary'/>
                 </IconButton>
-                <Typography variant="h6" sx={{alignSelf: 'center', mb: 3, mt: 4}}>
-                    {formDataStructure.title}
-                </Typography>
-                <form onSubmit={handleSubmit(onFormSubmit)}
-                      style={{display: 'flex', alignItems: 'center', flexDirection: 'column', marginTop: '12px'}}>
-                    <TextField
-                        {...register('email')}
-                        required
-                        fullWidth
-                        label='E-mail'
-                        margin='normal'
-                        size='small'
-                    />
-                    {!formDataStructure.link &&
-                    <TextField
-                        {...register('group')}
-                        required
-                        fullWidth
-                        label='Группа'
-                        margin='normal'
-                        size='small'
+                <Typography variant="h6"
+                            sx={{alignSelf: 'center', mb: 3, mt: 4}}> {title} </Typography>
+                <form className={s.form}
+                      onSubmit={handleSubmit(onFormSubmit)}>
+                    {field.email &&
+                    <TextField {...register('email')}
+                               required
+                               fullWidth
+                               value={_email}
+                               onChange={(change) => {
+                                   setEmail(change.target.value)
+                               }}
+                               label='E-mail'
+                               margin='normal'
+                               size='small'
                     />}
-                    <TextField
-                        {...register('password')}
-                        required
-                        fullWidth
-                        type='password'
-                        label='Пароль'
-                        margin='normal'
-                        autoComplete='current-password'
-                        size='small'
-                    />
-                    {formDataStructure.link &&
-                    <Link to='/registration'
-                          state={{backgroundLocation: location.state.backgroundLocation}}
-                          replace
-                          style={{
-                              alignSelf: 'flex-end',
-                              marginTop: '10px',
-                              color: theme.palette.primary.main
-                          }}>
-                        <Typography color='primary' sx={{fontSize: '15px'}}
-                        > Регистрация </Typography>
-                    </Link>}
-                    <Typography sx={{mt: '20px', mb: '20px', fontSize: '13px', height: '20px'}}
-                                color='error'
-                    >
-                        {error && textErr}
-                    </Typography>
-                    <Button type={'submit'} sx={{mt: '10px', width: 'fit-content'}}
-                            variant="outlined" color={'secondary'}>{formDataStructure.button}</Button>
+                    {field.group &&
+                    <TextField {...register('group')}
+                               required
+                               fullWidth
+                               value={_group}
+                               onChange={(change) => {
+                                   setGroup(change.target.value)
+                               }}
+                               label='Группа'
+                               margin='normal'
+                               size='small'
+                    />}
+                    {field.token &&
+                    <TextField {...register('token')}
+                               required
+                               fullWidth
+                               value={_token}
+                               onChange={(change) => {
+                                   setToken(change.target.value)
+                               }}
+                               label='Токен'
+                               margin='normal'
+                               size='small'
+                    />}
+                    {field.password &&
+                    <TextField {...register('password')}
+                               required
+                               fullWidth
+                               value={_password}
+                               onChange={(change) => {
+                                   setPassword(change.target.value)
+                               }}
+                               type='password'
+                               label='Пароль'
+                               margin='normal'
+                               autoComplete='current-password'
+                               size='small'
+                    />}
+                    {reference?.map((elem, ind) => {
+                        return <Link key={ind}
+                                     className={s.link}
+                                     to={elem.ref}
+                                     state={{backgroundLocation: location.state.backgroundLocation}}
+                                     replace
+                                     style={{}}>
+                            <Typography color='primary' sx={{fontSize: '15px'}}
+                            > {elem.title} </Typography>
+                        </Link>
+                    })}
+                    {error && <Notice typeNotice={'error'} textNotice={textError}/>}
+                    {success && <Notice typeNotice={'success'} textNotice={textSuccess}/>}
+                    <Button type={'submit'}
+                            sx={{mt: '35px', width: 'fit-content'}}
+                            variant="outlined"
+                            color={'secondary'}>{textButton}</Button>
                 </form>
+                <Button onClick={() => {
+                    localStorage.setItem('jwt', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MjJiNmZmYzA5YjEyZjgwZjRjMTBiYWEiLCJpYXQiOjE2NDcwMTM4ODUsImV4cCI6MTY3ODU0OTg4NX0.kNUaeZ45lQxfJ4eqWeas3wsPKwvk4r9uWOX5BbjlKL8')
+                    navigate('/')
+                }}
+                >Логин форс</Button>
             </Box>
         </Modal>
     )

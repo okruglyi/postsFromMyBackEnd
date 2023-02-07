@@ -51,12 +51,13 @@ export const App = () => {
             },
         },
     });
-
     useEffect(() => {
         setIsLoading(true)
         Promise.all([api.getUserInfo(token), api.getAllPosts(token)])
             .then(([resUserInfo, resPosts]) => {
-                setUserInfo(resUserInfo)
+                setUserInfo((prev) => {
+                    return {...resUserInfo, isAdmin: resUserInfo?.isAdmin ?? false, group: resUserInfo?.group ?? '123'}
+                })
                 setPosts(utils.doSort(resPosts, sortOrder))
             })
             .catch((error) => {
@@ -77,7 +78,12 @@ export const App = () => {
     }, [delayedSearchQuery])
 
     useEffect(() => {
-        if (path !== '/login' && path !== '/registration') handleAuthValidation()
+        if (path !== '/login' &&
+            path !== '/registration' &&
+            path !== '/reset_password' &&
+            path !== '/change_password') {
+            handleAuthValidation()
+        }
     }, [location.pathname])
 
     function handleSearchRequest() {
@@ -130,7 +136,7 @@ export const App = () => {
         if (token) {
             auth.requestValidationUser(token)
                 .then((userInfo) => {
-                    setUserInfo(userInfo)
+                    // setUserInfo(userInfo)
                     setUserAuth(true)
                 })
                 .catch((response) => {
@@ -165,49 +171,76 @@ export const App = () => {
                 </Header>
                 <main className='content container'>
                     {userAuth &&
-                    <>
-                        <Routes location={state?.backgroundLocation || location}>
-                            <Route
-                                path="/"
-                                element={
-                                    <AllPostsPage posts={posts} handleSort={handleSort} sortOrder={sortOrder}
-                                                  token={token}/>
-                                }
-                            />
-                            <Route
-                                path='/posts/:postId'
-                                element={<PostPage token={token}/>}
-                            />
-                            <Route
-                                path='/posts'
-                                element={<PostCreatePage edit={false} token={token}/>}
-                            />
-                            <Route
-                                path='/posts/edit/:postId'
-                                element={<PostCreatePage edit={true} token={token}/>}
-                            />
-                            <Route
-                                path="*"
-                                element={<NotFoundPage/>}
-                            />
-                        </Routes>
-                        {state?.backgroundLocation && (
-                            <Routes>
-                                <Route
-                                    path={'/profile'}
-                                    element={<Profile open={true} token={token} setOpen={() => navigate(-1)}/>}
-                                />
-                            </Routes>)}
-                    </>}
+                    <Routes location={state?.backgroundLocation || location}>
+                        <Route
+                            path="/"
+                            element={
+                                <AllPostsPage posts={posts} handleSort={handleSort} sortOrder={sortOrder}
+                                              token={token}/>
+                            }
+                        />
+                        <Route
+                            path='/posts/:postId'
+                            element={<PostPage token={token}/>}
+                        />
+                        <Route
+                            path='/posts'
+                            element={<PostCreatePage edit={false} token={token}/>}
+                        />
+                        <Route
+                            path='/posts/edit/:postId'
+                            element={<PostCreatePage edit={true} token={token}/>}
+                        />
+                        <Route
+                            path="*"
+                            element={<NotFoundPage/>}
+                        />
+                    </Routes>
+                    }
                     {state?.backgroundLocation && (
                         <Routes>
                             <Route
+                                path={'/profile'}
+                                element={<Profile open={true} setOpen={() => navigate(-1)}/>}
+                            />
+                            <Route
                                 path={'/login'}
-                                element={<FormAuth open={true} setOpen={() => navigate(-1)}/>}
+                                element={<FormAuth title='Авторизация'
+                                                   field={{email: true, password: true}}
+                                                   reference={[
+                                                       {title: 'Смена пароля', ref: '/change_password'},
+                                                       {title: 'Регистрация', ref: '/registration'}
+                                                   ]}
+                                                   textButton='Вход'
+                                                   open={true}
+                                                   setOpen={() => navigate(-1)}/>}
                             />
                             <Route
                                 path={'/registration'}
-                                element={<FormAuth open={true} setOpen={() => navigate(-1)}/>}
+                                element={<FormAuth title='Регистрация'
+                                                   field={{email: true, group: true, password: true}}
+                                                   textButton='Зарегистрироваться'
+                                                   open={true}
+                                                   setOpen={() => navigate(-1)}/>}
+                            />
+                            <Route
+                                path={'/reset_password'}
+                                element={<FormAuth title='Сброс пароля'
+                                                   field={{email: true}}
+                                                   textButton='Подтвердить'
+                                                   open={true}
+                                                   setOpen={() => navigate(-1)}/>}
+                            />
+                            <Route
+                                path={'/change_password'}
+                                element={<FormAuth title='Смена пароля'
+                                                   field={{password: true, token: true}}
+                                                   reference={[
+                                                       {title: 'Сброс пароля', ref: '/reset_password'}
+                                                   ]}
+                                                   textButton='Подтвердить'
+                                                   open={true}
+                                                   setOpen={() => navigate(-1)}/>}
                             />
                         </Routes>)}
                 </main>

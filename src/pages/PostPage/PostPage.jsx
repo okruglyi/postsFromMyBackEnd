@@ -9,58 +9,8 @@ import {Spinner} from "../../components/Spinner/Spinner";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 export const PostPage = ({token}) => {
-    const [post, setPost] = useState({})
-    const [comments, setComments] = useState({})
-    const [isError, serIsError] = useState(false)
     const {loadingState: {isLoading, setIsLoading}} = useContext(AppContext)
-    const {postId} = useParams()
     const navigate = useNavigate();
-
-    useEffect(() => {
-        setIsLoading(true)
-        Promise.all([api.getPost(postId, token), api.getPostComments(postId, token)])
-            .then(([respPost, respComments]) => {
-                setPost(respPost)
-                setComments(respComments)
-            })
-            .catch(() => serIsError(true))
-            .finally(() => setIsLoading(false))
-    }, [postId])
-
-    function handlePost(respPost, postId) {
-        setPost(respPost)
-        api.getPostComments(postId, token)
-            .then((respComment) => {
-                setComments(respComment)
-            })
-    }
-
-    function handleComment(postId, commentText, commentId) {
-        commentId
-            ? api.deletePostComment(postId, commentId, token)
-                .then((respPost) => {
-                    handlePost(respPost, postId)
-                })
-            : api.setPostComment(postId, commentText, token)
-                .then((respPost) => {
-                    handlePost(respPost, postId)
-                })
-
-        /*            ? api.deletePostComment(postId, commentId)
-                        .then((respPost) => {
-
-                        })
-                    : api.setPostComment(postId, commentText)
-                        .then((respPost) => {
-
-                        })*/
-
-
-    }
-
-    function handleDeleteComment(postId, commentId) {
-
-    }
 
     return (
         <Container maxWidth={'xl'}>
@@ -89,16 +39,7 @@ export const PostPage = ({token}) => {
                     <ArrowBackIcon sx={{m: '3px 6px 3px 2px'}}/>
                     Назад
                 </Button>
-                {
-                    isLoading
-                        ? (<Spinner open={true}/>)
-                        : (post && !isError && <DetailedPost
-                            post={post}
-                            comments={comments}
-                            handleComment={handleComment}
-                            handleDeleteComment={handleComment}
-                        />)
-                }
+                <DetailedPost/>
             </Grid2>
         </Container>
     )

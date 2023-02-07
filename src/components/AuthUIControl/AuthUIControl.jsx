@@ -33,7 +33,6 @@ export const AuthUIControl = ({handleLogout}) => {
                     <LoginIcon color="secondary" sx={{fontSize: '35px'}}/>
                 </IconButton>
             </Link>)
-
     )
 }
 

@@ -41,7 +41,6 @@ export const AllPostsPage = ({posts, handleSort, sortOrder, token}) => {
             iconReverse: <SortIcon sx={{rotate: '0deg'}}/>,
         },
     ]
-
     /*    function elementHasPair(inputString) {
             return inputString.split('').reduce((result, currentValue, index) => {
                 if (currentValue === '(') result += 1

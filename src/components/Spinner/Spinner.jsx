@@ -5,13 +5,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 export const Spinner = ({open}) => {
 
     return (
-        <div>
-            <Backdrop
-                sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}
-                open={open}
-            >
-                <CircularProgress color="inherit"/>
-            </Backdrop>
-        </div>
+        <Backdrop
+            transitionDuration={{appear: 100, enter: 100, exit: 200}}
+            sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}}
+            open={open}
+        >
+            <CircularProgress color="inherit"/>
+        </Backdrop>
     );
 }

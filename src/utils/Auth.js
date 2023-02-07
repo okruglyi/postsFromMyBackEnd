@@ -37,24 +37,24 @@ class Auth {
       .then(onResponce)
   }
 
-  requestPasswordReset(userData) {
+  requestPasswordReset(email) {
     return fetch(`${this.baseUrl}/password-reset`, {
       method: 'POST',
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify(userData)
+      body: JSON.stringify(email)
     })
       .then(onResponce)
   }
 
-  requestPasswordChange(userData, userId, token) {
+  requestPasswordChange({token, ...newPassword}, userId) {
     return fetch(`${this.baseUrl}/password-reset/${userId}/${token}`, {
       method: 'POST',
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify(userData)
+      body: JSON.stringify(newPassword)
     })
       .then(onResponce)
   }

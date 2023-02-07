@@ -1,17 +1,25 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
+import {useLocation} from "react-router-dom";
 import {Box, Modal, Typography, TextField, Button, IconButton} from "@mui/material";
 import {User} from "../User/User";
 import {AppContext} from "../../context/appContext";
 import {useForm} from "react-hook-form";
 import {api} from "../../utils/Api";
 import CloseIcon from '@mui/icons-material/Close';
+import Alert from '@mui/material/Alert';
+import {Notice} from "../Notice/Notice";
 
-export const Profile = ({open, setOpen, token}) => {
+export const Profile = ({open, setOpen}) => {
     const handleClose = () => setOpen(false)
     const {user: {userInfo, setUserInfo}} = useContext(AppContext) //author: {name, avatar, about, email}
     const [_name, _setName] = useState(userInfo?.name)
     const [_about, _setAbout] = useState(userInfo?.about)
     const [_avatar, _setAvatar] = useState(userInfo?.avatar)
+    const [ok, setOk] = useState(false)
+    const [error, setError] = useState(false)
+    const [textErr, setTextErr] = useState('')
+    const location = useLocation()
+    const token = localStorage.getItem('jwt')
     const {register, handleSubmit, reset, formState: {errors}} = useForm({
         mode: "onBlur",
     })
@@ -30,12 +38,28 @@ export const Profile = ({open, setOpen, token}) => {
         p: 4,
     };
 
+    useEffect(() => {
+        setError(false)
+    }, [location.pathname])
+
     function onFormSubmit({avatar, ...data}) {
         Promise.all([api.editUserInfo(data, token), api.editAvatar({avatar: avatar}, token)])
             .then(([newUserInfo, newAvatar]) => {
                 setUserInfo({...newUserInfo, newAvatar})
+                setOk(true)
+                setError(false)
+                setTextErr('Данные изменены успешно!')
+            })
+            .catch((response) => {
+                response.json().then((error) => {
+                    console.log(error)
+                    setError(true)
+                    setOk(false)
+                    setTextErr(error.message)
+                })
             })
     }
+
 
     return (
         <Modal
@@ -104,6 +128,8 @@ export const Profile = ({open, setOpen, token}) => {
                             _setAvatar(e.target.value)
                         }}
                     />
+                    {error && <Notice typeNotice={'error'} textNotice={textErr}/>}
+                    {ok && <Notice typeNotice={'success'} textNotice={'Данные изменены успешно!'}/>}
                     <Button type={'submit'} sx={{color: '#000', mt: '20px'}}>Изменить данные</Button>
                 </form>
             </Box>
