@@ -14,7 +14,7 @@ import {Link} from "react-router-dom";
 import {SimpleDialog} from "../../components/SimpleDialog/SimpleDialog";
 import {api} from "../../utils/Api";
 
-export const AllPostsPage = ({posts, handleSort, sortOrder}) => {
+export const AllPostsPage = ({posts, handleSort, sortOrder, token}) => {
     const {postsOnPage, loadingState: {isLoading}, page: {page, setPage}} = useContext(AppContext);
     const countPosts = posts?.length
     const countPage = Math.ceil(countPosts / postsOnPage)
@@ -41,7 +41,6 @@ export const AllPostsPage = ({posts, handleSort, sortOrder}) => {
             iconReverse: <SortIcon sx={{rotate: '0deg'}}/>,
         },
     ]
-
     /*    function elementHasPair(inputString) {
             return inputString.split('').reduce((result, currentValue, index) => {
                 if (currentValue === '(') result += 1
@@ -55,7 +54,7 @@ export const AllPostsPage = ({posts, handleSort, sortOrder}) => {
 
     useEffect(() => {
         console.log('Выполнение апи удаления поста ', dialogChoice)
-        dialogChoice && api.deletePost(postId)
+        dialogChoice && api.deletePost(postId, token)
             .then((response) => {
                 console.log(response)
             })

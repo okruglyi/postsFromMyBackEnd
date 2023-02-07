@@ -55,7 +55,7 @@ export const Comment = ({
                 </Typography>
                 {userInfo?.['_id'] === author?.['_id'] && <IconButton
                     aria-label="Удалить комметарий"
-                    onClick={() => handleDeleteComment(...[postId,, _id])}
+                    onClick={() => handleDeleteComment(...[postId, , _id])}
                     sx={{alignSelf: 'end', width: '40px'}}>
                     <DeleteIcon color="action"/>
                 </IconButton>}

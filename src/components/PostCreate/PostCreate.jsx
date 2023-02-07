@@ -11,7 +11,7 @@ import {useForm} from "react-hook-form";
 import {api} from "../../utils/Api";
 import {Alert} from "../Alert/Alert";
 
-export const PostCreate = ({edit = false}) => {
+export const PostCreate = ({edit = false}, token) => {
     const [_title, _setTitle] = useState('')
     const [_text, _setText] = useState('')
     const [_image, _setImage] = useState('')
@@ -55,7 +55,7 @@ export const PostCreate = ({edit = false}) => {
         const postData = {title: _title, image: _image, text: _text, tags}
 
         !edit
-            ? api.setNewPost(postData)
+            ? api.setNewPost(postData, token)
                 .then((respPost) => {
                     setSuccess(true)
                     reset()
@@ -65,7 +65,7 @@ export const PostCreate = ({edit = false}) => {
                     setError(true)
                 })
 
-            : api.editCurrentPost(postId, postData)
+            : api.editCurrentPost(postId, postData, token)
                 .then((respPost) => {
                     setSuccess(true)
                     reset()

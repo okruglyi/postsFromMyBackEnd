@@ -9,7 +9,7 @@ import {NotFoundPage} from "./pages/NotFoundPage/NotFoundPage";
 import {User} from "./components/User/User";
 import {api} from "./utils/Api";
 import {AppContext} from "./context/appContext";
-import {Box, Container, IconButton} from "@mui/material";
+import {Typography} from "@mui/material";
 import {Search} from "./components/Search/Search";
 import {useDebounce} from "./hooks/useDebounce";
 import utils from './utils/Utils';
@@ -17,8 +17,9 @@ import {Profile} from "./components/Profile/Profile";
 import {createTheme, ThemeProvider} from '@mui/material/styles';
 import {purple} from "@mui/material/modern/colors";
 import {PostCreatePage} from "./pages/PostCreatePage/PostCreatePage";
-import LogoutIcon from '@mui/icons-material/Logout';
-import FavoriteIcon from '@mui/icons-material/Favorite';
+import {FormAuth} from "./components/FormAuth/FormAuth";
+import {AuthUIControl} from "./components/AuthUIControl/AuthUIControl";
+import {auth} from "./utils/Auth";
 
 export const App = () => {
     const sortDefault = 'newerDate';
@@ -32,10 +33,12 @@ export const App = () => {
     const firstRender = useRef(true)
     const [sortOrder, setSortOrder] = useState(sortDefault)
     const [open, setOpen] = useState(false)
-    const [userAuth, setUserAuth] = useState(true)
+    const [userAuth, setUserAuth] = useState(false)
     const navigate = useNavigate()
     const location = useLocation()
     const state = location.state
+    const token = localStorage.getItem('jwt')
+    const path = location.pathname
     const theme = createTheme({
         palette: {
             primary: {
@@ -48,15 +51,14 @@ export const App = () => {
             },
         },
     });
-
     useEffect(() => {
         setIsLoading(true)
-
-        Promise.all([api.getUserInfo(), api.getAllPosts()])
+        Promise.all([api.getUserInfo(token), api.getAllPosts(token)])
             .then(([resUserInfo, resPosts]) => {
-                setUserInfo(resUserInfo)
+                setUserInfo((prev) => {
+                    return {...resUserInfo, isAdmin: resUserInfo?.isAdmin ?? false, group: resUserInfo?.group ?? '123'}
+                })
                 setPosts(utils.doSort(resPosts, sortOrder))
-
             })
             .catch((error) => {
                 console.log(`Error: ${error}`)
@@ -64,20 +66,30 @@ export const App = () => {
             .finally(() => {
                 setIsLoading(false)
             })
-    }, [])
+    }, [userAuth])
 
     useEffect(() => {
         if (firstRender.current) {
             firstRender.current = false
         } else {
+            navigate('/')
             handleSearchRequest();
         }
     }, [delayedSearchQuery])
 
+    useEffect(() => {
+        if (path !== '/login' &&
+            path !== '/registration' &&
+            path !== '/reset_password' &&
+            path !== '/change_password') {
+            handleAuthValidation()
+        }
+    }, [location.pathname])
+
     function handleSearchRequest() {
         setIsLoading(true)
         api
-            .searchPosts(delayedSearchQuery)
+            .searchPosts(delayedSearchQuery, token)
             .then((resPosts) => {
                 setPosts(utils.doSort(resPosts, sortOrder))
                 setPage(1)
@@ -99,9 +111,10 @@ export const App = () => {
         setPosts(utils.doSort(posts, id))
     }
 
-    function handleLike(postId, isMeLiked, setIsMeLiked, setLikes = () => {}) {
+    function handleLike(postId, isMeLiked, setIsMeLiked, setLikes = () => {
+    }) {
         isMeLiked
-            ? api.deleteLike(postId)
+            ? api.deleteLike(postId, token)
                 .then((newPost) => {
                     setLikes(newPost['likes'])
                     setPosts(posts?.map((post) => {
@@ -109,7 +122,7 @@ export const App = () => {
                     }))
                     setIsMeLiked(!isMeLiked)
                 })
-            : api.setLike(postId)
+            : api.setLike(postId, token)
                 .then((newPost) => {
                     setLikes(newPost['likes'])
                     setPosts(posts?.map((post) => {
@@ -119,13 +132,33 @@ export const App = () => {
                 })
     }
 
+    function handleAuthValidation() {
+        if (token) {
+            auth.requestValidationUser(token)
+                .then((userInfo) => {
+                    // setUserInfo(userInfo)
+                    setUserAuth(true)
+                })
+                .catch((response) => {
+                    console.log(response?.status)
+                    if (response?.status === 401) handleLogout()
+                })
+        } else handleLogout()
+    }
+
+    function handleLogout() {
+        if (token) localStorage.removeItem('jwt');
+        setUserAuth(false)
+        navigate('/login', {state: {backgroundLocation: location}})
+    }
+
     return (
         <AppContext.Provider
             value={{
                 postsOnPage: postsOnPage,
                 loadingState: {isLoading, setIsLoading},
                 handleLike: handleLike,
-                userAuth: userAuth,
+                userAuthContext: {userAuth: userAuth, setUserAuth: setUserAuth},
                 postsObj: {posts: posts, setPosts: setPosts},
                 user: {userInfo: userInfo, setUserInfo: setUserInfo},
                 page: {page: page, setPage: setPage},
@@ -133,63 +166,87 @@ export const App = () => {
             <ThemeProvider theme={theme}>
                 <Header>
                     <Logo nameClass={'inHeader'}/>
-                    {location.pathname === '/' &&
-                    <Search searchQuery={searchQuery} handleSearchInput={handleSearchInput}/>}
-                    {
-                        userAuth
-                            ? (<div style={{"display": "flex"}}>
-                                <Link
-                                    style={{textDecoration: 'none'}}
-                                    to={'/profile'}
-                                    state={{backgroundLocation: location}}>
-                                    <User {...userInfo} size={'70px'} nameClass='inHeader' clickable={true}/>
-                                </Link>
-                                <IconButton style={{height: 'fit-content', alignSelf: 'center'}}
-                                            onClick={(() => console.log('action'))}>
-                                    <LogoutIcon/>
-                                </IconButton>
-                            </div>)
-                            : (<Link
-                                to={'/login'}
-                                state={{backgroundLocation: location}}>
-                                Логин
-                            </Link>)
-                    }
+                    {userAuth && <Search searchQuery={searchQuery} handleSearchInput={handleSearchInput}/>}
+                    <AuthUIControl handleLogout={handleLogout}/>
                 </Header>
                 <main className='content container'>
+                    {userAuth &&
                     <Routes location={state?.backgroundLocation || location}>
                         <Route
                             path="/"
                             element={
-                                <AllPostsPage posts={posts} handleSort={handleSort} sortOrder={sortOrder}/>
+                                <AllPostsPage posts={posts} handleSort={handleSort} sortOrder={sortOrder}
+                                              token={token}/>
                             }
                         />
                         <Route
                             path='/posts/:postId'
-                            element={<PostPage/>}
+                            element={<PostPage token={token}/>}
                         />
                         <Route
                             path='/posts'
-                            element={<PostCreatePage/>}
+                            element={<PostCreatePage edit={false} token={token}/>}
                         />
                         <Route
                             path='/posts/edit/:postId'
-                            element={<PostCreatePage edit/>}
+                            element={<PostCreatePage edit={true} token={token}/>}
                         />
                         <Route
                             path="*"
                             element={<NotFoundPage/>}
                         />
                     </Routes>
+                    }
                     {state?.backgroundLocation && (
                         <Routes>
                             <Route
                                 path={'/profile'}
-                                element={<Profile open={true} setOpen={() => navigate(-1)} {...posts}/>}
+                                element={<Profile open={true} setOpen={() => navigate(-1)}/>}
+                            />
+                            <Route
+                                path={'/login'}
+                                element={<FormAuth title='Авторизация'
+                                                   field={{email: true, password: true}}
+                                                   reference={[
+                                                       {title: 'Смена пароля', ref: '/change_password'},
+                                                       {title: 'Регистрация', ref: '/registration'}
+                                                   ]}
+                                                   textButton='Вход'
+                                                   open={true}
+                                                   setOpen={() => navigate(-1)}/>}
+                            />
+                            <Route
+                                path={'/registration'}
+                                element={<FormAuth title='Регистрация'
+                                                   field={{email: true, group: true, password: true}}
+                                                   textButton='Зарегистрироваться'
+                                                   open={true}
+                                                   setOpen={() => navigate(-1)}/>}
+                            />
+                            <Route
+                                path={'/reset_password'}
+                                element={<FormAuth title='Сброс пароля'
+                                                   field={{email: true}}
+                                                   textButton='Подтвердить'
+                                                   open={true}
+                                                   setOpen={() => navigate(-1)}/>}
+                            />
+                            <Route
+                                path={'/change_password'}
+                                element={<FormAuth title='Смена пароля'
+                                                   field={{password: true, token: true}}
+                                                   reference={[
+                                                       {title: 'Сброс пароля', ref: '/reset_password'}
+                                                   ]}
+                                                   textButton='Подтвердить'
+                                                   open={true}
+                                                   setOpen={() => navigate(-1)}/>}
                             />
                         </Routes>)}
                 </main>
-                <Footer/>
+                <Footer>
+                    <Typography>Здесь будет общая информация</Typography>
+                </Footer>
             </ThemeProvider>
         </AppContext.Provider>
     )

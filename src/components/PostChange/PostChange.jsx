@@ -12,7 +12,7 @@ import {useForm} from "react-hook-form";
 import {api} from "../../utils/Api";
 
 
-export const PostChange = () => {
+export const PostChange = ({token}) => {
     const [_title, _setTitle] = useState('')
     const [_text, _setText] = useState('')
     const [_image, _setImage] = useState('')
@@ -67,7 +67,7 @@ export const PostChange = () => {
     function onFormSubmit({tags: tagsArray, ...postData}) {
         const tags = handleStringTags(tagsArray);
 
-        api.setNewPost({...postData, tags})
+        api.setNewPost({...postData, tags}, token)
             .then((respPost) => {
                 setSuccess(true)
                 reset()
