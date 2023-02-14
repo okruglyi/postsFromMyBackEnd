@@ -30,7 +30,7 @@ class Api {
       {
         method: 'GET',
         headers: {
-          authorization: token,
+          // authorization: token,
         }
       }).then(onResponce)
   }
@@ -152,7 +152,8 @@ const onResponce = (res) => {
 }
 
 const initialParams = {
-  baseUrl: 'https://api.react-learning.ru'
+  baseUrl: 'http://localhost:3000'
+  // baseUrl: 'https://api.react-learning.ru'
 }
 
 export const api = new Api(initialParams);

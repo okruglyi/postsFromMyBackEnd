@@ -65,7 +65,7 @@ const onResponce = (res) => {
 }
 
 const conf = {
-  baseUrl: "https://api.react-learning.ru",
+  // baseUrl: "https://api.react-learning.ru",
 }
 
 export const auth = new Auth(conf)
